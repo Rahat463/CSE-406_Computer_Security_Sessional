@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Side-channel runtime artifacts (Assignment 2)
+*.sqlite
+*.db
+dataset/
+*.pkl
+*.pth
+collected_*.json
+
+# Stray pip-redirect / junk files
+=*
+
+# OS / editor noise
+.DS_Store
+.vscode/
+.idea/
