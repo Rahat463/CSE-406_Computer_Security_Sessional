@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Website Fingerprinting</title>
+    <!-- Pico CSS - minimal CSS framework -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <!-- Alpine.js - minimal reactive framework -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <style>
+      body {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .results-table {
+        margin: 0 auto;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container" x-data="app()">
+      <h1>CSE406: Website Fingerprinting</h1>
+
+      <div class="button-group">
+        <button @click="collectLatencyData()" :disabled="isCollecting">
+          Collect Latency Data
+        </button>
+        <button @click="collectTraceData()" :disabled="isCollecting">
+          Collect Trace
+        </button>
+        <button @click="downloadTraces()" :disabled="isCollecting">
+          Download Traces
+        </button>
+        <button @click="clearResults()" :disabled="isCollecting">
+          Clear Results
+        </button>
+      </div>
+
+      <div
+        x-show="status"
+        role="alert"
+        x-text="status"
+        :class="{'alert-success': !statusIsError, 'alert-error': statusIsError}"
+      ></div>
+
+      <!-- Latency Results Table -->
+      <template x-if="latencyResults && !showingTraces">
+        <div class="results-container">
+          <h3>Latency Results</h3>
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>N</th>
+                <th>Median Access Latency (ms)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(time, n) in latencyResults" :key="n">
+                <tr>
+                  <td x-text="n"></td>
+                  <td x-text="time.toFixed(2)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </template>
+
+      <!-- Heatmap gallery for all traces -->
+      <template x-if="heatmaps.length > 0 && showingTraces">
+        <div class="results-container">
+          <h3>Cache Trace Heatmaps</h3>
+          <div
+            class="heatmap-gallery"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+              gap: 1rem;
+            "
+          >
+            <template x-for="(heatmap, index) in heatmaps" :key="index">
+              <div
+                class="heatmap-item"
+                style="
+                  border: 1px solid #ddd;
+                  padding: 1rem;
+                  border-radius: 8px;
+                "
+              >
+                <h4 x-text="`Trace ${index + 1}`"></h4>
+                <img
+                  :src="heatmap.url"
+                  :alt="`Heatmap ${index + 1}`"
+                  style="width: 100%; height: auto; max-width: 400px"
+                />
+                <div
+                  class="heatmap-info"
+                  style="margin-top: 0.5rem; font-size: 0.9em"
+                >
+                  <p>
+                    <strong>Timestamp:</strong>
+                    <span
+                      x-text="new Date(heatmap.timestamp).toLocaleString()"
+                    ></span>
+                  </p>
+                  <template x-if="heatmap.stats">
+                    <div>
+                      <p>
+                        <strong>Min:</strong>
+                        <span x-text="heatmap.stats.min"></span>
+                      </p>
+                      <p>
+                        <strong>Max:</strong>
+                        <span x-text="heatmap.stats.max"></span>
+                      </p>
+                      <p>
+                        <strong>Mean:</strong>
+                        <span x-text="heatmap.stats.mean.toFixed(2)"></span>
+                      </p>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </main>
+
+    <script src="index.js"></script>
+    <script>
+      // Initialize app by fetching existing results when page loads
+      document.addEventListener("alpine:init", () => {
+        window.Alpine.store("app").fetchResults()
+      })
+    </script>
+  </body>
+</html>
